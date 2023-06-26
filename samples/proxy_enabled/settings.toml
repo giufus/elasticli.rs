@@ -1,0 +1,20 @@
+[default]
+
+elastic.host = 'remotehost'
+elastic.port = 9200
+elastic.protocol = 'http'
+elastic.version = '8.8.0'
+
+proxy.enabled = true
+proxy.host = 'proxyhost'
+proxy.port = 9201
+proxy.protocol = 'http'
+proxy.user = 'ec2-user'
+proxy.remote_user = 'ec2-remote-user'
+proxy.key = 'path to ssh key'
+proxy.timeout = 3
+
+
+[production]
+elastic.host = 'remotehost'
+elastic.port = 9200
