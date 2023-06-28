@@ -1,5 +1,7 @@
 
-## Elasticli 🦀
+## Elasticli 🦀  
+[![Rust](https://github.com/giufus/elasticli.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/giufus/elasticli.rs/actions/workflows/rust.yml)  
+
 The missing Command Line Interface to interact with Elasticsearch (or yet another one).  
 Even if elasticsearch APIs are super easy to invoke and very well documented, I always forget the basic commands and methods to do indexing or searches, so I decided to write my own CLI.  
 I hope you find it useful, it is a work in progress.  
