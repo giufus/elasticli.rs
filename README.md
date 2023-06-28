@@ -25,10 +25,10 @@ Currently, you can use `elasticli` to:
 
 - `cargo run -- <your options and command here>` to build and run from sources directly with the great `cargo`.  
 
-- Every command can use the `hydroconf` features to override default configurations. For example you can override some defaults passing environment name as env var:  
+- Every command can use the `hydroconf` features to override default configurations. For example you can override some defaults passing environment name as env var to the command line:  
 `ENV_FOR_HYDRO=production elasticli info`  
-or singularly, specifying the prop  
-`HYDRO_ELASTIC__PASSWORD="an even stronger password" elasticli info`
+or per single prop, specifying it as an env var to the command line:  
+`HYDRO_ELASTIC__PASSWORD="an even stronger password" elasticli info`  
 
 Look at the [hydroconf doc](https://github.com/rubik/hydroconf) for major details.    
 
@@ -73,11 +73,13 @@ proxy.timeout = 3
 Instead of boring you while trying to describe how it works, here you find a few examples of commands (and sometimes the output). 
 I hope it is understandable enough.
 
-### Info  
+### General
 
 #### - Get help about the command, options and subcommand   
 `elasticli --help`   
-`elasticli <command> --help`    
+`elasticli <info | index | document> --help`    
+
+### Info
 
 #### - Get basic info about elasticsearch  
 `elasticli info`  
@@ -104,17 +106,17 @@ I hope it is understandable enough.
 
 ### Index
 
-#### - Get index, same operation, multiple ways
+#### - Get index, same operation, multiple ways (it is Clap's magic)
 `elasticli index -i test1`  
 `elasticli index -i=test1`  
 `elasticli index --index-name=test1`  
 `elasticli index -o read --index-name=test1`  
 
-#### - Get indexes (_all and * are Elasticsearch wildcards)
+#### - Get indexes ('_all' and '*' are Elasticsearch wildcards)
 `elasticli index -i _all`  
 `elasticli index --index-name='*'`  
 
-#### - Create index
+#### - Create index  
 `elasticli index -o create --index-name='pippo'`  
 `elasticli index -o create --index-name='pippo_2' -b '{"settings": { "index": {  "number_of_shards": 3,  "number_of_replicas": 2  } } }'`  
 
@@ -126,19 +128,19 @@ I hope it is understandable enough.
 }
 ```  
 
-#### - Update Index `test2`   
+#### - Update Index    
 ```
 NOT YET IMPLEMENTED
 ```  
 
-#### - Delete Index `test2`    
+#### - Delete Index      
 `elasticli index -o delete -i 'pippo2'`  
 `elasticli -c ./samples/default index -o delete --index-name='pippo2'`  
 
 
 ### Document
 
-#### - Create a document into `test1`  
+#### - Create a document in `test1`  
 `elasticli document -o create -i test1 -b '{"name":"giufus", "language": "rust"}'`  
 
 ``` 
@@ -157,7 +159,7 @@ NOT YET IMPLEMENTED
 }
 ```
 
-#### - Update an existing document (you need to put your object into 'doc')
+#### - Update an existing document (you need to put your updates inside 'doc')
 `elasticli document -o update -i test1 -b '{"doc": { "language": "zig"} }' --id 5Lms-YgBu6r1vXY7vPX_`  
 
 ``` 
@@ -179,7 +181,7 @@ NOT YET IMPLEMENTED
 #### - Search all docs in test1 index  
 `elasticli document -o read -i test1`  
 
-#### - Search all docs in test1 with a es query DSL  
+#### - Search all docs in test1 with an Elasticsearch query   
 `elasticli document -o read -i test1 -b '{ "query": { "term": { "name": "giufus" } }}'`  
 
 #### - Delete an existing document
