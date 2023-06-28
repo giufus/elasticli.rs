@@ -3,7 +3,7 @@ use std::process::{Child, Command, ExitStatus};
 
 use crate::{arguments::Arguments, configuration::Config};
 use crate::client::{ElasticApi, ElasticApiClient};
-use crate::configuration::{get_configuration};
+use crate::configuration::get_configuration;
 
 mod arguments;
 mod configuration;
@@ -19,7 +19,7 @@ async fn main() {
 
     let elastic_api: ElasticApiClient = ElasticApiClient {};
 
-    // run tunnel eventually
+    // run SSH tunnel, eventually
     let _ssh_process: (Option<Child>, Option<ExitStatus>) = match &conf.proxy {
         Some(x) => {
             match x.enabled {

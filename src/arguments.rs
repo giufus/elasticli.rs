@@ -1,13 +1,11 @@
-
-use clap::{Parser, Subcommand, Args};
+use clap::{Args, Parser, Subcommand};
 use clap::builder::TypedValueParser;
-
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 #[command(term_width = 0)]
 pub struct Arguments {
-    /// dir containing settings.toml / .secrets.toml
+    /// dir containing settings.toml  .secrets.toml
     #[arg(short, long, value_name = "DIRECTORY", )]
     pub config: Option<String>,
 
@@ -18,71 +16,79 @@ pub struct Arguments {
 
 #[derive(Subcommand, Debug)]
 pub enum Api {
-    /// info about elasticsearch: only GET (it is the default) method is enabled
+    /// info commands
     Info(AddArgs),
-    /// GET retrieve index info, PUT create index, POST insert document into index, OPTIONS update a document, DELETE remove index
+    /// index commands
     Index(AddArgs),
-    /// search documents operations: only POST method is enabled
-    Search(AddArgs),
+    /// document commands
+    Document(AddArgs),
 }
 
 #[derive(Debug, Args)]
 pub struct AddArgs {
-    /// index name or alias
-    pub index_name: Option<String>,
 
-    /// json body of the request
-    pub body: Option<String>,
 
-    /// id of a document
-    pub id: Option<String>,
-
+    /// operation to execute
     #[arg(
     long,
     short,
-    default_value_t = Method::Get,
-    value_parser = clap::builder::PossibleValuesParser::new(["get", "post", "put", "delete", "options"])
-    .map(| s | s.parse::< Method > ().unwrap()),
+    default_value_t = Operation::Read,
+    value_parser = clap::builder::PossibleValuesParser::new(["create", "read", "update", "delete"])
+    .map(| s | s.parse::< Operation > ().unwrap()),
     )]
-    pub method: Method,
+    pub operation: Operation,
 
-    ///  pagination
+    /// index name or alias
+    #[arg(short, long, )]
+    pub index_name: Option<String>,
+
+    /// json body of the request
+    #[arg(short, long,)]
+    pub body: Option<String>,
+
+    /// type of a document
+    #[arg(short, long,)]
+    pub type_name: Option<String>,
+
+    /// id of a document
+    #[arg(long,)]
+    pub id: Option<String>,
+
+    ///  page size
+    #[arg(short, long,)]
     pub page: Option<u16>,
 
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum Method {
-    Get,
-    Post,
-    Put,
+pub enum Operation {
+    Create,
+    Read,
+    Update,
     Delete,
-    Options,
 }
 
-impl std::fmt::Display for Method {
+impl std::fmt::Display for Operation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Self::Get => "get",
-            Self::Post => "post",
-            Self::Put => "put",
+            Self::Create => "create",
+            Self::Read => "read",
+            Self::Update => "update",
             Self::Delete => "delete",
-            Self::Options => "options",
         };
         s.fmt(f)
     }
 }
 
-impl std::str::FromStr for Method {
+impl std::str::FromStr for Operation {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "get" => Ok(Self::Get),
-            "post" => Ok(Self::Post),
-            "put" => Ok(Self::Put),
+            "create" => Ok(Self::Create),
+            "read" => Ok(Self::Read),
+            "update" => Ok(Self::Update),
             "delete" => Ok(Self::Delete),
-            "options" => Ok(Self::Options),
             _ => Err(format!("Unknown method: {s}")),
         }
     }

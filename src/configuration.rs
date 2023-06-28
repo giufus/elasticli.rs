@@ -1,5 +1,4 @@
 
-
 use std::path::PathBuf;
 use hydroconf::{Hydroconf, HydroSettings};
 use serde::Deserialize;
@@ -34,26 +33,33 @@ pub struct Proxy {
     pub timeout: u8,
 }
 
+// constants
+pub const PROTOCOL: &str = "http";
+pub const HOST: &str = "127.0.0.1";
+pub const PORT: u16 = 9200;
+pub const VERSION: &str = "8.8.0";
+pub const USERNAME: &str = "elastic";
+pub const PASSWORD: &str = "changeme";
+
+fn get_default_config() -> Config  {
+    Config {
+        elastic: ElasticConfig {
+            protocol: PROTOCOL.to_string(),
+            host: HOST.to_string(),
+            port: PORT,
+            version: VERSION.to_string(),
+            username: USERNAME.to_string(),
+            password: PASSWORD.to_string(),
+        },
+        proxy: None,
+    }
+}
+
 pub fn get_configuration(arguments: &Arguments) -> Config {
     match &arguments.config {
-        None => {
-            // Default Config
-            Config {
-                elastic: ElasticConfig {
-                    protocol: "http".to_string(),
-                    host: "127.0.0.1".to_string(),
-                    port: 9200,
-                    version: "8.8.0".to_string(),
-                    username: "elastic".to_string(),
-                    password: "changeme".to_string(),
-                },
-                proxy: None,
-            }
-        }
+        None => get_default_config(),
         Some(f) => {
             let root = PathBuf::from(&f);
-            //let settings = PathBuf::from(format!("{}/settings.toml", &f));
-            //let secrets = PathBuf::from(format!("{}/.secrets.toml", &f));
             if root.exists() {
                 let hydroconf = Hydroconf::new(
                     HydroSettings::default().set_root_path(root)
@@ -61,7 +67,7 @@ pub fn get_configuration(arguments: &Arguments) -> Config {
                 match hydroconf {
                     Ok(c) => c,
                     Err(e) => {
-                        println!("could not read configuration: {:#?}", e);
+                        println!("cannot read configuration: {:#?}", e);
                         std::process::exit(1);
                     }
                 }
@@ -78,7 +84,7 @@ pub fn get_configuration(arguments: &Arguments) -> Config {
 mod tests {
     use super::*;
     use crate::arguments::{AddArgs, Api, Arguments};
-    use crate::arguments::Method::Get;
+    use crate::arguments::Operation::Read;
 
     #[test]
     fn test_get_configuration_use_defaults_when_no_config_basedir_provided() {
@@ -88,10 +94,11 @@ mod tests {
             config: None,
             api: Api::Info(AddArgs {
                 index_name: None,
-                method: Get,
+                operation: Read,
                 body: None,
                 page: None,
                 id: None,
+                type_name: None,
             }
             ),
         };
@@ -114,10 +121,11 @@ mod tests {
             config: Some("./samples/default".to_string()),
             api: Api::Info(AddArgs {
                 index_name: None,
-                method: Get,
+                operation: Read,
                 body: None,
                 page: None,
                 id: None,
+                type_name: None,
             }
             ),
         };

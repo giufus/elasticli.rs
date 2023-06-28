@@ -1,12 +1,11 @@
 
 use std::error::Error;
-use std::ops::Add;
+
 use async_trait::async_trait;
-use serde_json::{Value};
+use serde_json::Value;
 
 use crate::{arguments::Api, configuration::Config};
-use crate::arguments::{AddArgs, Arguments, Method};
-
+use crate::arguments::{AddArgs, Arguments, Operation};
 
 #[async_trait]
 pub trait ElasticApi {
@@ -14,7 +13,7 @@ pub trait ElasticApi {
     fn get_elasticsearch_baseurl(&self, config: &Config) -> String;
     async fn info_command(&self, config: &Config, arguments: Arguments) -> Result<Value, Box<dyn Error>>;
     async fn index_command(&self, config: &Config, arguments: AddArgs) -> Result<Value, Box<dyn Error>>;
-    async fn search_command(&self, config: &Config, arguments: AddArgs) -> Result<Value, Box<dyn Error>>;
+    async fn document_command(&self, config: &Config, arguments: AddArgs) -> Result<Value, Box<dyn Error>>;
 }
 
 pub struct ElasticApiClient {}
@@ -25,7 +24,7 @@ impl ElasticApi for ElasticApiClient {
         match arguments.api {
             Api::Info(_) => self.info_command(config, arguments).await,
             Api::Index(a) => self.index_command(config, a).await,
-            Api::Search(a) => self.search_command(config, a).await,
+            Api::Document(a) => self.document_command(config, a).await,
         }
     }
 
@@ -54,55 +53,43 @@ impl ElasticApi for ElasticApiClient {
 
         let client = reqwest::Client::new();
         let base_url = self.get_elasticsearch_baseurl(&config);
-        let method = arguments.method;
-        let index = arguments.index_name.unwrap_or("_all".to_string());
-        let id = arguments.id.unwrap_or("".to_string());
+        let operation = arguments.operation;
+        let index = arguments.index_name.expect("index name is required when operating with index commands");
         let resp;
 
-
-        match method {
-
-            // get index info
-            Method::Get => {
-                resp = reqwest::get(&base_url
-                    .add("/").add(&index)
-                ).await?.json::<Value>().await;
-            },
-
-            // index a document
-            Method::Post => {
-                resp = client.post(&base_url
-                    .add("/").add(&index).add("/_doc")
-                ).body(arguments.body.expect("body required"))
-                    .header("Content-type", "application/json")
-                .send().await?.json::<Value>().await;
-            },
-
-            // update a document
-            Method::Options => {
-                resp = client.post(&base_url
-                    .add("/").add(&index).add("/_update/").add(&id)
-                ).body(arguments.body.expect("body required"))
-                    .header("Content-type", "application/json")
-                .send().await?.json::<Value>().await;
-            },
+        match operation {
 
             // create index
-            Method::Put => {
-                resp = client.put(&base_url
-                    .add("/").add(&index)
-                ).body(arguments.body.expect("body required"))
-                    .send().await?.json::<Value>().await;
+            Operation::Create => {
+                let body = arguments.body.unwrap_or("{}".to_string());
+                resp = client
+                    .put(base_url + "/" + &index)
+                    .body(body)
+                    .header("Content-type", "application/json")
+                    .send().await?
+                    .json::<Value>().await;
+            },
+
+            // get index info
+            Operation::Read => {
+                resp = reqwest::get(base_url + "/" + &index).await?
+                    .json::<Value>().await;
+            },
+
+            // update index
+            Operation::Update => {
+                unimplemented!("I am sorry: Index update is not yet implemented.")
             },
 
             // delete index
-            Method::Delete => {
-                resp = client.delete(&base_url
-                    .add("/").add(&index)
-                ).send().await?.json::<Value>().await;
+            Operation::Delete => {
+                resp = client
+                    .delete(base_url + "/" + &index)
+                    .send().await?
+                    .json::<Value>().await;
             },
 
-        }
+        };
 
         match resp {
             Ok(v) => Ok(v),
@@ -112,27 +99,66 @@ impl ElasticApi for ElasticApiClient {
 
     }
 
-    async fn search_command(&self, config: &Config, arguments: AddArgs) -> Result<Value, Box<dyn Error>> {
+    async fn document_command(&self, config: &Config, arguments: AddArgs) -> Result<Value, Box<dyn Error>> {
         let client = reqwest::Client::new();
         let base_url = self.get_elasticsearch_baseurl(&config);
-        let method = arguments.method;
-        let index = arguments.index_name.unwrap_or("_all".to_string());
+        let operation = arguments.operation;
+        let index = arguments.index_name.expect("index name is required when operating with document commands");
         let resp;
 
-        match method {
-            Method::Post => {
-                resp = client.post(&base_url
-                    .add("/").add(&index).add("/_search")
-                ).body(arguments.body.expect("body required"))
-                    .header("Content-type", "application/json")
-                    .send().await?.json::<Value>().await;
+        match operation {
 
-                match resp {
-                    Ok(v) => Ok(v),
-                    Err(e) => Err(Box::new(e))
-                }
+            // index a document
+            Operation::Create => {
+                let body = arguments.body.expect("body is required when creating documents");
+                resp = client
+                    .post(base_url + "/" + &index + "/_doc")
+                    .body(body)
+                    .header("Content-type", "application/json")
+                    .send().await?
+                    .json::<Value>().await;
             },
-            _ => Err("only post method is supported")?
+
+            // search a document
+            Operation::Read => {
+                let body = arguments.body.unwrap_or("".to_string());
+                resp = client
+                    .post(base_url + "/" + &index + "/_search")
+                    .body(body)
+                    .header("Content-type", "application/json")
+                    .send().await?
+                    .json::<Value>().await;
+            },
+
+            // update a document
+            Operation::Update => {
+                let body = arguments.body.expect("body is required when updating documents");
+                let id = arguments.id.expect("doc id is required when updating a document");
+                resp = client
+                    .post(base_url + "/" + &index + "/_update/" + &id)
+                    .body(body)
+                    .header("Content-type", "application/json")
+                    .send().await?
+                    .json::<Value>().await;
+            },
+
+            // delete a document
+            Operation::Delete => {
+                let type_name = arguments.type_name.unwrap_or("_doc".to_string());
+                let id = arguments.id.expect("doc id is required when deleting a document");
+                resp = client
+                    .delete(base_url + "/" + &index + "/" + &type_name +  "/" + &id)
+                    .header("Content-type", "application/json")
+                    .send().await?
+                    .json::<Value>().await;
+            },
+
+
+        };
+
+        match resp {
+            Ok(v) => Ok(v),
+            Err(e) => Err(Box::new(e))
         }
     }
 }
@@ -140,8 +166,8 @@ impl ElasticApi for ElasticApiClient {
 
 #[cfg(test)]
 mod tests {
-    use crate::arguments::Method::Get;
-    use crate::configuration::{get_configuration};
+    use crate::arguments::Operation::{Read};
+    use crate::configuration::get_configuration;
 
     use super::*;
 
@@ -157,10 +183,11 @@ mod tests {
             config: None,
             api: Api::Info(AddArgs {
                 index_name: None,
-                method: Get,
+                operation: Read,
                 body: None,
                 page: None,
                 id: None,
+                type_name: None,
             }
             ),
         };
@@ -180,10 +207,11 @@ mod tests {
             config: Some("./samples/default".to_string()),
             api: Api::Info(AddArgs {
                 index_name: None,
-                method: Get,
+                operation: Read,
                 body: None,
                 page: None,
                 id: None,
+                type_name: None,
             }
             ),
         };
@@ -204,10 +232,11 @@ mod tests {
             config: Some("./samples/proxy_enabled".to_string()),
             api: Api::Info(AddArgs {
                 index_name: None,
-                method: Get,
+                operation: Read,
                 body: None,
                 page: None,
                 id: None,
+                type_name: None,
             }
             ),
         };

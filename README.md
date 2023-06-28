@@ -1,6 +1,6 @@
 
 ## Elasticli 🦀
-Yet another Command Line Interface to interact with Elasticsearch (and another of my experiments in the journey to learn Rust language).  
+The missing Command Line Interface to interact with Elasticsearch (or yet another one).  
 Even if elasticsearch APIs are super easy to invoke and very well documented, I always forget the basic commands and methods to do indexing or searches, so I decided to write my own CLI.  
 I hope you find it useful, it is a work in progress.  
   
@@ -10,27 +10,29 @@ Written in Rust 🦀, it uses the following crates:
 - [hydroconf](https://crates.io/crates/hydroconf) for configuration management  
 - [reqwest](https://crates.io/crates/reqwest) for http requests toward elasticsearch
 
-If configured, the command can open a SSH tunnel, invoke the api then close the tunnel.   
+If opportunely configured, the command can run inside a SSH tunnel (with auto close after a number of seconds).   
 
 Currently, you can use `elasticli` to:    
 - get info about the target elasticsearch version;  
-- create, update, delete an index;  
-- create, update a document;  
-- search documents;  
+- create, read, update, delete an index;  
+- create, read, update, delete a document;  
+
 
 ### Build & Configuration
-- Build it for your platform with `cargo build --release`, then go to `target/release` and run the binary `elasticli`. I would like to learn how to cross compile it, in the future.      
+- Build it for your platform with `cargo build --release`, then go to `target/release` and run the binary `elasticli`. I would like to learn how to cross compile it in the future, if possible, to provide binaries for different platforms and architectures.      
 
 - `cargo test` to run unit tests.  
 
-- `cargo run -- <your options and command here>` to run it directly from cargo.  
+- `cargo run -- <your options and command here>` to build and run from sources directly with the great `cargo`.  
 
-- Every command can use the `hydroconf` features to override default configurations.  
-- For example you can override some defaults passing environment name as env var:  
+- Every command can use the `hydroconf` features to override default configurations. For example you can override some defaults passing environment name as env var:  
 `ENV_FOR_HYDRO=production elasticli info`  
-- Look at the [hydroconf doc](https://github.com/rubik/hydroconf) for major details.    
+or singularly, specifying the prop  
+`HYDRO_ELASTIC__PASSWORD="an even stronger password" elasticli info`
 
-- I like to pass the config root directory with `-c` option, for example. The directory must contain the configuration files:  
+Look at the [hydroconf doc](https://github.com/rubik/hydroconf) for major details.    
+
+- You pass the config root directory with `-c` option before one of the commands (info, index, document). The directory must contain the configuration files (look into the `default` folder for the latest version):  
 
 [.secrets.toml](samples%2Fdefault%2F.secrets.toml)  environment based _sensitive_ configurations (tipically elastic user and password).  
 ```
@@ -47,7 +49,6 @@ elastic.password = 'changeme'
 
 ```
 [default]
-
 # your target elasticsearch host, port, protocol and version
 elastic.host = 'otherhost'
 elastic.port = 9200
@@ -55,7 +56,8 @@ elastic.protocol = 'http'
 elastic.version = '8.8.0'
 
 # if enabled, the main command will be executed inside an ssh tunnel. It is the same as running 
-# ssh -i <proxy.key> <proxy.remote_user>@<proxy.host> <elastic.port>:<elastic.host>:<elastic.port> sleep <proxy.timeout>
+###  ssh -i <proxy.key> <proxy.remote_user>@<proxy.host> <elastic.port>:<elastic.host>:<elastic.port> sleep <proxy.timeout>
+###  ssh -i .ssh/some_id_rsa centos@bastion-host 9200:remote-es.server.es:9200 sleep 3
 # but rust do it for you
 proxy.enabled = false
 proxy.host = 'proxyhost'
@@ -67,16 +69,17 @@ proxy.key = 'path to ssh key'
 proxy.timeout = 3
 ```
 
-Look at the samples in the `default` dir of the project for an overview of the possible values. 
+## Commands Showcase
+Instead of boring you while trying to describe how it works, here you find a few examples of commands (and sometimes the output). 
+I hope it is understandable enough.
 
-### Showcases
-Instead of boring you while trying to describe how it works, here you find a few examples of commands (and sometimes the output).  
+### Info  
 
-##### - Get help about the command, options and subcommand    
+#### - Get help about the command, options and subcommand   
 `elasticli --help`   
-`elasticli info | index | search --help`    
+`elasticli <command> --help`    
 
-#### - Get basic info about elasticsearch       
+#### - Get basic info about elasticsearch  
 `elasticli info`  
 
 ```
@@ -99,77 +102,44 @@ Instead of boring you while trying to describe how it works, here you find a few
 }
 ```
 
-#### - Get info about `_all` known indexes (found `test1` index)  
-`elasticli index`
+### Index
 
-```
-{
-  "test1": {
-    "aliases": {},
-    "mappings": {
-      "properties": {
-        "language": {
-          "fields": {
-            "keyword": {
-              "ignore_above": 256,
-              "type": "keyword"
-            }
-          },
-          "type": "text"
-        },
-        "name": {
-          "fields": {
-            "keyword": {
-              "ignore_above": 256,
-              "type": "keyword"
-            }
-          },
-          "type": "text"
-        }
-      }
-    },
-    "settings": {
-      "index": {
-        "creation_date": "1687816701969",
-        "number_of_replicas": "1",
-        "number_of_shards": "1",
-        "provided_name": "test1",
-        "routing": {
-          "allocation": {
-            "include": {
-              "_tier_preference": "data_content"
-            }
-          }
-        },
-        "uuid": "VjhEfYL9QDuJiwzFcuKDTQ",
-        "version": {
-          "created": "8080099"
-        }
-      }
-    }
-  }
-}
-```
+#### - Get index, same operation, multiple ways
+`elasticli index -i test1`  
+`elasticli index -i=test1`  
+`elasticli index --index-name=test1`  
+`elasticli index -o read --index-name=test1`  
 
-#### - Get info about `test1` index
-`elasticli index test1`
+#### - Get indexes (_all and * are Elasticsearch wildcards)
+`elasticli index -i _all`  
+`elasticli index --index-name='*'`  
 
-#### - Create Index `test2` with no other settings (`BODY` argument is empty)  
-`elasticli index -m put test2 ""`
+#### - Create index
+`elasticli index -o create --index-name='pippo'`  
+`elasticli index -o create --index-name='pippo_2' -b '{"settings": { "index": {  "number_of_shards": 3,  "number_of_replicas": 2  } } }'`  
 
 ```
 {
   "acknowledged": true,
-  "index": "test2",
+  "index": "pippo",
   "shards_acknowledged": true
 }
 ```  
 
-#### - Delete Index `test2`    
-`elasticli index -m delete test2`  
+#### - Update Index `test2`   
+```
+NOT YET IMPLEMENTED
+```  
 
-#### - Index a document into `test1`  
-`elasticli index -m post test1 '{"name":"giufus", "language": "rust"}'`  
+#### - Delete Index `test2`    
+`elasticli index -o delete -i 'pippo2'`  
+`elasticli -c ./samples/default index -o delete --index-name='pippo2'`  
+
+
+### Document
+
+#### - Create a document into `test1`  
+`elasticli document -o create -i test1 -b '{"name":"giufus", "language": "rust"}'`  
 
 ``` 
 {
@@ -187,8 +157,8 @@ Instead of boring you while trying to describe how it works, here you find a few
 }
 ```
 
-#### - Update an existing document  
-`elasticli index -m options test1 '{"doc": { "language": "zig"} }' 5Lms-YgBu6r1vXY7vPX_`  
+#### - Update an existing document (you need to put your object into 'doc')
+`elasticli document -o update -i test1 -b '{"doc": { "language": "zig"} }' --id 5Lms-YgBu6r1vXY7vPX_`  
 
 ``` 
 {
@@ -206,54 +176,43 @@ Instead of boring you while trying to describe how it works, here you find a few
 }
 ```
 
-#### - Search documents (no query, just give me some hits)  
-`elasticli search test1 -m post "{}"` 
+#### - Search all docs in test1 index  
+`elasticli document -o read -i test1`  
 
-```                               
+#### - Search all docs in test1 with a es query DSL  
+`elasticli document -o read -i test1 -b '{ "query": { "term": { "name": "giufus" } }}'`  
+
+#### - Delete an existing document
+`elasticli document -o delete -i test1 --id 5rm3-YgBu6r1vXY7S_Xb`
+
+``` 
 {
+  "_id": "5Lms-YgBu6r1vXY7vPX_",
+   "_index": "test1",
+  "_primary_term": 3,
+  "_seq_no": 9,
   "_shards": {
     "failed": 0,
-    "skipped": 0,
     "successful": 1,
-    "total": 1
+    "total": 2
   },
-  "hits": {
-    "hits": [
-      {
-        "_id": "5Lms-YgBu6r1vXY7vPX_",
-        "_index": "test1",
-        "_score": 1.0,
-        "_source": {
-          "language": "zig",
-          "name": "giufus"
-        }
-      }
-    ],
-    "max_score": 1.0,
-    "total": {
-      "relation": "eq",
-      "value": 1
-    }
-  },
-  "timed_out": false,
-  "took": 8
+  "_version": 3,
+  "result": "deleted"
 }
 ```
-
-The `BODY` argument can be any valid elasticsearch DSL json. 
 
 
 ### Defaults
 There are some defaults in the code in case you don't specify them.  
-- http  
-- 127.0.0.1  
-- 9200  
-- _all  
-- GET
+- `http` as protocol  
+- `127.0.0.1` as host  
+- `9200` as port   
+- `_doc` as type (used in document deletion)  
+- `read` as operation  
+- `8.8.0` as es version
 
 
 ### Todo  
-- change `Method` enum to something more understandable (maybe something like classic actions of CRUD APIs)    
 - write a better documentation   
 - handle elasticsearch authentication (probably it can be done in reqwest)   
 - handle elasticsearch versions (providing multiple implementations of the trait)  
