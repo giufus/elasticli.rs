@@ -34,22 +34,23 @@ pub struct Proxy {
 }
 
 // constants
-pub const PROTOCOL: &str = "http";
-pub const HOST: &str = "127.0.0.1";
-pub const PORT: u16 = 9200;
-pub const VERSION: &str = "8.8.0";
-pub const USERNAME: &str = "elastic";
-pub const PASSWORD: &str = "changeme";
+pub const PROTOCOL_DEFAULT: &str = "http";
+pub const HOST_DEFAULT: &str = "127.0.0.1";
+pub const PORT_DEFAULT: u16 = 9200;
+pub const VERSION_DEFAULT: &str = "8.8.0";
+pub const USERNAME_DEFAULT: &str = "elastic";
+pub const PASSWORD_DEFAULT: &str = "changeme";
+
 
 fn get_default_config() -> Config  {
     Config {
         elastic: ElasticConfig {
-            protocol: PROTOCOL.to_string(),
-            host: HOST.to_string(),
-            port: PORT,
-            version: VERSION.to_string(),
-            username: USERNAME.to_string(),
-            password: PASSWORD.to_string(),
+            protocol: PROTOCOL_DEFAULT.to_string(),
+            host: HOST_DEFAULT.to_string(),
+            port: PORT_DEFAULT,
+            version: VERSION_DEFAULT.to_string(),
+            username: USERNAME_DEFAULT.to_string(),
+            password: PASSWORD_DEFAULT.to_string(),
         },
         proxy: None,
     }

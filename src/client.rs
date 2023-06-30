@@ -38,10 +38,13 @@ impl ElasticApi for ElasticApiClient {
     }
 
     async fn info_command(&self, config: &Config, _arguments: Arguments) -> Result<Value, Box<dyn Error>> {
-        let resp = reqwest::get(self.get_elasticsearch_baseurl(&config))
-            .await?
-            .json::<Value>()
-            .await;
+
+        let client = reqwest::Client::new();
+        let resp  = client
+            .get(self.get_elasticsearch_baseurl(&config))
+            .basic_auth(&config.elastic.username, Some(&config.elastic.password))
+            .send().await?
+            .json::<Value>().await;
 
         match resp {
             Ok(v) => Ok(v),
@@ -64,6 +67,7 @@ impl ElasticApi for ElasticApiClient {
                 let body = arguments.body.unwrap_or("{}".to_string());
                 resp = client
                     .put(base_url + "/" + &index)
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .body(body)
                     .header("Content-type", "application/json")
                     .send().await?
@@ -72,7 +76,10 @@ impl ElasticApi for ElasticApiClient {
 
             // get index info
             Operation::Read => {
-                resp = reqwest::get(base_url + "/" + &index).await?
+                resp = client
+                    .get(base_url + "/" + &index)
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
+                    .send().await?
                     .json::<Value>().await;
             },
 
@@ -85,6 +92,7 @@ impl ElasticApi for ElasticApiClient {
             Operation::Delete => {
                 resp = client
                     .delete(base_url + "/" + &index)
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .send().await?
                     .json::<Value>().await;
             },
@@ -113,6 +121,7 @@ impl ElasticApi for ElasticApiClient {
                 let body = arguments.body.expect("body is required when creating documents");
                 resp = client
                     .post(base_url + "/" + &index + "/_doc")
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .body(body)
                     .header("Content-type", "application/json")
                     .send().await?
@@ -124,6 +133,7 @@ impl ElasticApi for ElasticApiClient {
                 let body = arguments.body.unwrap_or("".to_string());
                 resp = client
                     .post(base_url + "/" + &index + "/_search")
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .body(body)
                     .header("Content-type", "application/json")
                     .send().await?
@@ -136,6 +146,7 @@ impl ElasticApi for ElasticApiClient {
                 let id = arguments.id.expect("doc id is required when updating a document");
                 resp = client
                     .post(base_url + "/" + &index + "/_update/" + &id)
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .body(body)
                     .header("Content-type", "application/json")
                     .send().await?
@@ -148,6 +159,7 @@ impl ElasticApi for ElasticApiClient {
                 let id = arguments.id.expect("doc id is required when deleting a document");
                 resp = client
                     .delete(base_url + "/" + &index + "/" + &type_name +  "/" + &id)
+                    .basic_auth(&config.elastic.username, Some(&config.elastic.password))
                     .header("Content-type", "application/json")
                     .send().await?
                     .json::<Value>().await;

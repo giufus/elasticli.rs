@@ -19,6 +19,9 @@ Currently, you can use `elasticli` to:
 - create, read, update, delete an index;  
 - create, read, update, delete a document;  
 
+### Changelog  
+0.1.1: basic authentication   
+0.1.0: first release  
 
 ### Build & Configuration
 - Build it for your platform with `cargo build --release`, then go to `target/release` and run the binary `elasticli`. I would like to learn how to cross compile it in the future, if possible, to provide binaries for different platforms and architectures.      
@@ -218,13 +221,16 @@ There are some defaults in the code in case you don't specify them.
 
 ### Todo  
 - write a better documentation   
-- handle elasticsearch authentication (probably it can be done in reqwest)   
 - handle elasticsearch versions (providing multiple implementations of the trait)  
 - integration tests (maybe using something like [testcontainers](https://crates.io/crates/testcontainers))    
 
 
 ### Run elasticsearch locally with docker and no security  
 `docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" elasticsearch:8.8.0`
+
+
+### Run elasticsearch locally with docker and basic authentication  
+`docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=true" -e "ELASTIC_PASSWORD=changeme" elasticsearch:8.8.0`
 
 
 
