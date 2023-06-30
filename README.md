@@ -1,5 +1,8 @@
 
-## Elasticli 🦀  
+# Elasticli
+
+<img alt="Logo" height="10%" src="logo.jpeg" width="10%"/>
+
 [![Rust](https://github.com/giufus/elasticli.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/giufus/elasticli.rs/actions/workflows/rust.yml)  
 
 The missing Command Line Interface to interact with Elasticsearch (or yet another one).  
