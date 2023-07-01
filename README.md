@@ -78,7 +78,7 @@ proxy.timeout = 3
 ```
 
 ## Commands Showcase
-Instead of boring you while trying to describe how it works, here you find a few examples of commands (and sometimes the output). 
+Learn by example! Here a few sample commands (and sometimes the output). 
 I hope it is understandable enough.
 
 ### General
