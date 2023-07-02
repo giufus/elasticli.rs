@@ -19,20 +19,44 @@ If opportunely configured, the command can run inside a SSH tunnel (with auto cl
 
 Currently, you can use `elasticli` to:    
 - get info about the target elasticsearch version;  
-- create, read, update, delete an index;  
+- create, read, ~~update~~, delete an index;  
 - create, read, update, delete a document;  
 
 ### Changelog  
 0.1.1: basic authentication   
 0.1.0: first release  
 
-### Build & Configuration
-- Build it for your platform with `cargo build --release`, then go to `target/release` and run the binary `elasticli`. I would like to learn how to cross compile it in the future, if possible, to provide binaries for different platforms and architectures.      
+### Build & Run
 
-- `cargo test` to run unit tests.  
+#### Option 1
+- Build it for your platform with `cargo build --release` (or just type `make`), then go to `target/release` and run the binary `elasticli`.  
 
-- `cargo run -- <your options and command here>` to build and run from sources directly with the great `cargo`.  
+#### Option 2
+- Alternatively, download the pre-built binary for your platform in the [relases](https://github.com/giufus/elasticli.rs/releases) page. The executable is available for the following targets:  
 
+  - **x86_64-unknown-linux-gnu** -> 64-bit Linux (kernel 3.2+, glibc 2.17+)  
+  - **~~x86_64-pc-windows-msvc~~** -> 64-bit MSVC (Windows 7+) # CROSS BUILD NOT YET SUPPORTED           
+  - **~~x86_64-apple-darwin~~** -> 64-bit macOS (10.7+, Lion+) # CROSS BUILD NOT YET SUPPORTED
+  - **aarch64-unknown-linux-gnu** -> ARM64 Linux (kernel 4.1, glibc 2.17+)  
+  - **aarch64-apple-darwin** -> ARM64 macOS (11.0+, Big Sur+)  
+
+You can get the complete list of rust targets with:    
+`rustc --print target-list`  
+
+Your platform is shown in the `host` property of the output of:  
+`rustc -vV`  
+
+
+#### Option 3  
+If you want to experience the cross-compilation, install [cross](https://github.com/cross-rs/cross) (you may need other dependencies), grab a beer, then run:    
+`make <YOUR-TARGET>`  
+where the target is one of the list `rustc --print target-list`. Anyway, I have already cross-compiled [some of them]([relases](https://github.com/giufus/elasticli.rs/releases)) for you.   
+
+#### Other 
+- If you want to run unit tests run `cargo test`.
+- If you want to build and run directly from sources `cargo run -- <your elasticli options and command here>`.  
+
+### Configuration  
 - Every command can use the `hydroconf` features to override default configurations. For example you can override some defaults passing environment name as env var to the command line:  
 `ENV_FOR_HYDRO=production elasticli info`  
 or per single prop, specifying it as an env var to the command line:  
