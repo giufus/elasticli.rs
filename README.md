@@ -23,6 +23,7 @@ Currently, you can use `elasticli` to:
 - create, read, update, delete a document;  
 
 ### Changelog  
+0.1.2: cross platform building   
 0.1.1: basic authentication   
 0.1.0: first release  
 
@@ -34,11 +35,14 @@ Currently, you can use `elasticli` to:
 #### Option 2
 - Alternatively, download the pre-built binary for your platform in the [relases](https://github.com/giufus/elasticli.rs/releases) page. The executable is available for the following targets:  
 
-  - **x86_64-unknown-linux-gnu** -> 64-bit Linux (kernel 3.2+, glibc 2.17+)  
-  - **~~x86_64-pc-windows-msvc~~** -> 64-bit MSVC (Windows 7+) # CROSS BUILD NOT YET SUPPORTED           
-  - **~~x86_64-apple-darwin~~** -> 64-bit macOS (10.7+, Lion+) # CROSS BUILD NOT YET SUPPORTED
-  - **aarch64-unknown-linux-gnu** -> ARM64 Linux (kernel 4.1, glibc 2.17+)  
-  - **aarch64-apple-darwin** -> ARM64 macOS (11.0+, Big Sur+)  
+  - **x86_64-unknown-linux-gnu** -> 64-bit Linux (kernel 3.2+, glibc 2.17+) # CROSS BUILD  
+  - **x86_64-pc-windows-msvc** -> 64-bit MSVC (Windows 7+) # BUILT ON WINDOWS ** ***            
+  - **~~x86_64-apple-darwin~~** -> 64-bit macOS (10.7+, Lion+) # NOT YET SUPPORTED **  
+  - **aarch64-unknown-linux-gnu** -> ARM64 Linux (kernel 4.1, glibc 2.17+) # CROSS BUILD   
+  - **aarch64-apple-darwin** -> ARM64 macOS (11.0+, Big Sur+)  # LOCAL BUILD   
+
+**: `cross` uses docker images to cross compile, unfortunately windows and apple images are not available at the moment.  
+***: on windows, apart from [install rust](https://www.rust-lang.org/tools/install), you may need to [install perl](https://strawberryperl.com/) to build `elasticli`.
 
 You can get the complete list of rust targets with:    
 `rustc --print target-list`  
