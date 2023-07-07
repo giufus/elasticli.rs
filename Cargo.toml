@@ -2,8 +2,14 @@
 name = "elasticli"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "The missing Elasticsearch CLI"
+keywords = ["cli", "elasticsearch", "elastic", "search", "api", "console"]
+categories = ["command-line-interface", "command-line-utilities"]
+repository = "https://github.com/giufus/elasticli.rs"
+documentation = "https://github.com/giufus/elasticli.rs#readme"
+authors = ["Giufus"]
+readme = "README.md"
+license = "manifest"
 
 [dependencies]
 async-trait = "0.1.68"

@@ -9,6 +9,7 @@ pub struct Arguments {
     #[arg(short, long, value_name = "DIRECTORY", )]
     pub config: Option<String>,
 
+    /// the command name
     #[command(subcommand)]
     pub api: Api,
 

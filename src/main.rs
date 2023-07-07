@@ -30,7 +30,7 @@ async fn main() {
                         .arg("-f")
                         .arg("-L")
                         .arg(format!("{}:{}:{}", conf.elastic.port, conf.elastic.host, conf.elastic.port).as_str())
-                        .arg(format!("sleep {};", x.timeout).as_str()) //autoclose tunnel in x sec;
+                        .arg(format!("sleep {};", x.timeout).as_str()) //autoclose tunnel after x seconds;
                         .spawn().expect("ssh command panicked");
 
                     let exit_status = child.wait().expect("ssh command exit status panicked");
