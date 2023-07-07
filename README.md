@@ -15,7 +15,7 @@ Written in Rust 🦀, it uses the following crates:
 - [hydroconf](https://crates.io/crates/hydroconf) for configuration management  
 - [reqwest](https://crates.io/crates/reqwest) for http requests toward elasticsearch
 
-If opportunely configured, the command can run inside a SSH tunnel (with auto close after a number of seconds).   
+If opportunely configured, the command can run inside an SSH tunnel (with auto close after a number of seconds).   
 
 Currently, you can use `elasticli` to:    
 - get info about the target elasticsearch version;  
@@ -33,7 +33,7 @@ Currently, you can use `elasticli` to:
 - Build it for your platform with `cargo build --release` (or just type `make`), then go to `target/release` and run the binary `elasticli`.  
 
 #### Option 2
-- Alternatively, download the pre-built binary for your platform in the [relases](https://github.com/giufus/elasticli.rs/releases) page. The executable is available for the following targets:  
+- Alternatively, download the pre-built binary for your platform in the [releases](https://github.com/giufus/elasticli.rs/releases) page. The executable is available for the following targets:  
 
   - **x86_64-unknown-linux-gnu** -> 64-bit Linux (kernel 3.2+, glibc 2.17+) # CROSS BUILD   
   - **x86_64-pc-windows-msvc** -> 64-bit MSVC (Windows 7+) # BUILT ON WINDOWS ** ***            
@@ -54,7 +54,7 @@ Your platform is shown in the `host` property of the output of:
 #### Option 3  
 If you want to experience the cross-compilation, install [cross](https://github.com/cross-rs/cross) (you may need other dependencies), grab a beer, then run:    
 `make <YOUR-TARGET>`  
-where the target is one of the list `rustc --print target-list`. Anyway, I have already cross-compiled [some of them]([relases](https://github.com/giufus/elasticli.rs/releases)) for you.   
+where the target is one of the outputs of `rustc --print target-list`. Anyway, I have already cross-compiled [some of them]([relases](https://github.com/giufus/elasticli.rs/releases)) for you.   
 
 #### Other 
 - If you want to run unit tests run `cargo test`.
@@ -68,7 +68,7 @@ or per single prop, specifying it as an env var to the command line:
 
 Look at the [hydroconf doc](https://github.com/rubik/hydroconf) for major details.    
 
-- You pass the config root directory with `-c` option before one of the commands (info, index, document). The directory must contain the configuration files (look into the `default` folder for the latest version):  
+- You pass the config root directory with `-c` option before one of the commands (info, index, document). The directory must contain the configuration files (look in the `default` folder for the latest version):  
 
 [.secrets.toml](samples%2Fdefault%2F.secrets.toml)  environment based _sensitive_ configurations (tipically elastic user and password).  
 ```
@@ -94,7 +94,7 @@ elastic.version = '8.8.0'
 # if enabled, the main command will be executed inside an ssh tunnel. It is the same as running 
 ###  ssh -i <proxy.key> <proxy.remote_user>@<proxy.host> <elastic.port>:<elastic.host>:<elastic.port> sleep <proxy.timeout>
 ###  ssh -i .ssh/some_id_rsa centos@bastion-host 9200:remote-es.server.es:9200 sleep 3
-# but rust do it for you
+# but rust does it for you
 proxy.enabled = false
 proxy.host = 'proxyhost'
 proxy.port = 9201
@@ -106,7 +106,7 @@ proxy.timeout = 3
 ```
 
 ## Commands Showcase
-Learn by example! Here a few sample commands (and sometimes the output). 
+Learn from examples! Here a few sample commands (and sometimes the output). 
 I hope it is understandable enough.
 
 ### General
@@ -195,7 +195,7 @@ NOT YET IMPLEMENTED
 }
 ```
 
-#### - Update an existing document (you need to put your updates inside 'doc')
+#### - Update an existing document (you need to put your updates in 'doc')
 `elasticli document -o update -i test1 -b '{"doc": { "language": "zig"} }' --id 5Lms-YgBu6r1vXY7vPX_`  
 
 ``` 
@@ -241,7 +241,7 @@ NOT YET IMPLEMENTED
 
 
 ### Defaults
-There are some defaults in the code in case you don't specify them.  
+There are some defaults in the code in case you don't specify them:    
 - `http` as protocol  
 - `127.0.0.1` as host  
 - `9200` as port   
@@ -250,9 +250,9 @@ There are some defaults in the code in case you don't specify them.
 - `8.8.0` as es version
 
 
-### Todo  
-- write a better documentation   
-- handle elasticsearch versions (providing multiple implementations of the trait)  
+### To do  
+- write better documentation   
+- handle elasticsearch versions (e.g. providing multiple implementations of the trait)  
 - integration tests (maybe using something like [testcontainers](https://crates.io/crates/testcontainers))    
 
 
