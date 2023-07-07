@@ -9,7 +9,7 @@ repository = "https://github.com/giufus/elasticli.rs"
 documentation = "https://github.com/giufus/elasticli.rs#readme"
 authors = ["Giufus"]
 readme = "README.md"
-license = "manifest"
+license = "MIT"
 
 [dependencies]
 async-trait = "0.1.68"
