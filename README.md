@@ -92,8 +92,8 @@ elastic.protocol = 'http'
 elastic.version = '8.8.0'
 
 # if enabled, the main command will be executed inside an ssh tunnel. It is the same as running 
-###  ssh -i <proxy.key> <proxy.remote_user>@<proxy.host> <elastic.port>:<elastic.host>:<elastic.port> sleep <proxy.timeout>
-###  ssh -i .ssh/some_id_rsa centos@bastion-host 9200:remote-es.server.es:9200 sleep 3
+###  ssh -i <proxy.key> <proxy.remote_user>@<proxy.host> -f -L <elastic.port>:<elastic.host>:<elastic.port> sleep <proxy.timeout>
+###  ssh -i .ssh/some_id_rsa centos@bastion-host -f -L 9200:remote-es.server.es:9200 sleep 3
 # but rust does it for you
 proxy.enabled = false
 proxy.host = 'proxyhost'
